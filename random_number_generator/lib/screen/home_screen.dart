@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:random_number_generator/screen/setting_screen.dart';
 
 import '../constant/color.dart';
 
@@ -10,6 +13,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  List<int> numbers = [123, 456, 789];
+  int number = 100;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   children: [
                     _TopPart(onPressedSetting: onPressedSetting),
-                    _BodyPart(),
+                    _BodyPart(number: number, numbers: numbers),
                     _BottomPart(onPressedCreate: onPressedCreate),
                   ],
                 ),
@@ -37,10 +43,29 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  onPressedSetting() {
+  onPressedSetting() async {
+    final maxNumber = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (BuildContext context) => SettingScreen(number: number)),
+    );
+
+    setState(() {
+      if (maxNumber != null) {
+        number = maxNumber;
+      }
+    });
   }
 
   onPressedCreate() {
+    final rand = Random();
+    final Set<int> randomNumbers = {};
+
+    while (randomNumbers.length != 3) {
+      randomNumbers.add(rand.nextInt(number));
+    }
+
+    setState(() {
+      numbers = randomNumbers.toList();
+    });
   }
 }
 
@@ -65,7 +90,7 @@ class _TopPart extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.settings),
           color: RED_COLOR,
-          onPressed: () {},
+          onPressed: onPressedSetting,
         )
       ],
     );
@@ -73,48 +98,39 @@ class _TopPart extends StatelessWidget {
 }
 
 class _BodyPart extends StatelessWidget {
-  const _BodyPart({super.key});
+  final List<int> numbers;
+  final int number;
+
+  const _BodyPart({
+    required this.numbers,
+    required this.number,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: 123
-                .toString()
-                .split('')
-                .map((e) => Image.asset(
-                      'asset/img/$e.png',
-                      height: 70.0,
-                      width: 50.0,
-                    ))
-                .toList(),
-          ),
-          Row(
-            children: 456
-                .toString()
-                .split('')
-                .map((e) => Image.asset(
-                      'asset/img/$e.png',
-                      height: 70.0,
-                      width: 50.0,
-                    ))
-                .toList(),
-          ),
-          Row(
-            children: 789
-                .toString()
-                .split('')
-                .map((e) => Image.asset(
-                      'asset/img/$e.png',
-                      height: 70.0,
-                      width: 50.0,
-                    ))
-                .toList(),
-          )
-        ],
+        children: numbers
+            .asMap()
+            .entries
+            .map(
+              (e) => Padding(
+                padding: EdgeInsets.only(bottom: e.key == 2 ? 0 : 16),
+                child: Row(
+                  children: e.value
+                      .toString()
+                      .split('')
+                      .map((e) => Image.asset(
+                            'asset/img/$e.png',
+                            height: 70.0,
+                            width: 50.0,
+                          ))
+                      .toList(),
+                ),
+              ),
+            )
+            .toList(),
       ),
     );
   }
@@ -133,7 +149,7 @@ class _BottomPart extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: onPressedCreate,
         style: ElevatedButton.styleFrom(
           backgroundColor: RED_COLOR,
         ),
